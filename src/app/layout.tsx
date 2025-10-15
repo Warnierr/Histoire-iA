@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Religious Map - Exploration Interactive des Religions',
-  description: 'Explorez les religions mondiales via une cartographie interactive avec assistance IA',
+  title: 'Histoire iA - Où le passé prend vie',
+  description: 'Plateforme artistique interactive d\'exploration de l\'histoire à travers 10 thèmes interconnectés',
 };
 
 export default function RootLayout({
@@ -15,8 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body className={inter.className}>{children}</body>
+    <html lang="fr" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

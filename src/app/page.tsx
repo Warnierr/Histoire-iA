@@ -1,13 +1,24 @@
 'use client';
 
 import { ThemeSelector } from '@/components/themes/theme-selector';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 // VERSION 0.2.0 - Plateforme Multi-Thématique
 // Interface d'accueil avec sélection des thèmes
 
 export default function HomePage() {
+  const scrollToThemes = () => {
+    const themesSection = document.getElementById('themes');
+    if (themesSection) {
+      themesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Theme Toggle */}
+      <ThemeToggle />
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background decoration */}
@@ -58,8 +69,8 @@ export default function HomePage() {
           {/* CTA */}
           <div className="flex flex-wrap justify-center gap-4">
             <button 
-              onClick={() => document.getElementById('themes')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transition-all hover:scale-105"
+              onClick={scrollToThemes}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium hover:shadow-lg transition-all hover:scale-105 active:scale-95"
             >
               Explorez les Thèmes
             </button>
