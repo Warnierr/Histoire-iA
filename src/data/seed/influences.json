@@ -1,0 +1,157 @@
+[
+  {
+    "fromId": "rel-judaisme",
+    "toId": "rel-christianisme",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 30,
+    "description": "Le christianisme est né du judaïsme du Second Temple",
+    "sourceId": "source-1"
+  },
+  {
+    "fromId": "rel-judaisme",
+    "toId": "rel-islam",
+    "type": "INSPIRATION",
+    "strength": 8,
+    "periodStart": 610,
+    "description": "L'islam reprend des éléments de la tradition abrahamique juive",
+    "sourceId": "source-1"
+  },
+  {
+    "fromId": "rel-christianisme",
+    "toId": "rel-islam",
+    "type": "INSPIRATION",
+    "strength": 7,
+    "periodStart": 610,
+    "description": "L'islam reconnaît Jésus comme prophète",
+    "sourceId": "source-1"
+  },
+  {
+    "fromId": "rel-christianisme",
+    "toId": "rel-catholicisme",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 325,
+    "description": "Le catholicisme est la continuation institutionnelle du christianisme primitif",
+    "sourceId": "source-3"
+  },
+  {
+    "fromId": "rel-christianisme",
+    "toId": "rel-orthodoxie",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 1054,
+    "description": "L'orthodoxie naît du Grand Schisme de 1054",
+    "sourceId": "source-3"
+  },
+  {
+    "fromId": "rel-catholicisme",
+    "toId": "rel-protestantisme",
+    "type": "REFORM",
+    "strength": 9,
+    "periodStart": 1517,
+    "description": "Le protestantisme est une réforme du catholicisme initiée par Luther",
+    "sourceId": "source-3"
+  },
+  {
+    "fromId": "rel-islam",
+    "toId": "rel-sunnisme",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 632,
+    "description": "Le sunnisme est la branche majoritaire de l'islam",
+    "sourceId": "source-2"
+  },
+  {
+    "fromId": "rel-islam",
+    "toId": "rel-chiisme",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 632,
+    "description": "Le chiisme naît d'une divergence sur la succession du prophète",
+    "sourceId": "source-2"
+  },
+  {
+    "fromId": "rel-hindouisme",
+    "toId": "rel-bouddhisme",
+    "type": "REFORM",
+    "strength": 8,
+    "periodStart": -500,
+    "description": "Le bouddhisme est né comme réforme de l'hindouisme",
+    "sourceId": "source-4"
+  },
+  {
+    "fromId": "rel-hindouisme",
+    "toId": "rel-jainisme",
+    "type": "REFORM",
+    "strength": 7,
+    "periodStart": -599,
+    "description": "Le jaïnisme partage des racines védiques avec l'hindouisme",
+    "sourceId": "source-4"
+  },
+  {
+    "fromId": "rel-hindouisme",
+    "toId": "rel-sikhisme",
+    "type": "SYNCRETISME",
+    "strength": 6,
+    "periodStart": 1469,
+    "description": "Le sikhisme synthétise des éléments hindous et musulmans",
+    "sourceId": "source-2"
+  },
+  {
+    "fromId": "rel-islam",
+    "toId": "rel-sikhisme",
+    "type": "SYNCRETISME",
+    "strength": 6,
+    "periodStart": 1469,
+    "description": "Le sikhisme intègre des concepts soufis",
+    "sourceId": "source-2"
+  },
+  {
+    "fromId": "rel-bouddhisme",
+    "toId": "rel-theravada",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": -250,
+    "description": "Le Theravāda conserve les enseignements originels du Bouddha",
+    "sourceId": "source-4"
+  },
+  {
+    "fromId": "rel-bouddhisme",
+    "toId": "rel-mahayana",
+    "type": "DERIVATION",
+    "strength": 10,
+    "periodStart": 100,
+    "description": "Le Mahāyāna développe de nouvelles interprétations du bouddhisme",
+    "sourceId": "source-4"
+  },
+  {
+    "fromId": "rel-islam",
+    "toId": "rel-bahaisme",
+    "type": "REFORM",
+    "strength": 7,
+    "periodStart": 1863,
+    "description": "Le bahaïsme naît dans un contexte chiite mais se veut universel",
+    "sourceId": "source-5"
+  },
+  {
+    "fromId": "rel-zoroastrisme",
+    "toId": "rel-judaisme",
+    "type": "INSPIRATION",
+    "strength": 5,
+    "periodStart": -500,
+    "description": "Le zoroastrisme a influencé certains concepts judaïques (anges, eschatologie)",
+    "sourceId": "source-4"
+  },
+  {
+    "fromId": "rel-taoisme",
+    "toId": "rel-bouddhisme",
+    "type": "SYNCRETISME",
+    "strength": 4,
+    "bidirectional": true,
+    "periodStart": 100,
+    "description": "Interactions entre taoïsme et bouddhisme en Chine",
+    "sourceId": "source-4"
+  }
+]
+

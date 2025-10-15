@@ -1,0 +1,698 @@
+// ============================================
+// SCHÉMA PRISMA - HISTOIRE iA
+// Architecture Multi-Thématique avec Tronc Commun
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ============================================
+// CORE NAMESPACE - Entités Partagées
+// ============================================
+
+model Person {
+  id            String   @id @default(cuid())
+  
+  // Identifiants externes
+  wikidataId    String?  @unique
+  sameAs        String[] // URIs d'alignement
+  
+  // Informations de base
+  fullName      String
+  shortName     String?
+  aliases       String[] // noms alternatifs
+  
+  // Dates (flexibles pour périodes anciennes)
+  birthYear     Int?
+  deathYear     Int?
+  flourished    String?  // "5e siècle av. JC"
+  
+  // Localisation
+  birthPlaceId  String?
+  birthPlace    Place?   @relation("BirthPlace", fields: [birthPlaceId], references: [id])
+  deathPlaceId  String?
+  deathPlace    Place?   @relation("DeathPlace", fields: [deathPlaceId], references: [id])
+  
+  // Métadonnées
+  description   String   @db.Text
+  biography     String?  @db.Text
+  imageUrl      String?
+  gender        String?
+  
+  // Relations
+  sourceIds     String[] // références bibliographiques
+  
+  // Chunks pour RAG
+  chunks        TextChunk[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([wikidataId])
+  @@index([birthYear])
+  @@index([deathYear])
+}
+
+model Place {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  wikidataId    String?  @unique
+  sameAs        String[]
+  
+  // Informations
+  name          String
+  alternateNames String[]
+  localName     String?
+  
+  // Géolocalisation
+  latitude      Float?
+  longitude     Float?
+  geojson       Json?    // Polygone complet si nécessaire
+  
+  // Hiérarchie géographique
+  country       String?
+  region        String?
+  city          String?
+  
+  // Métadonnées
+  description   String?  @db.Text
+  imageUrl      String?
+  placeType     PlaceType
+  
+  // Relations
+  sourceIds     String[]
+  
+  // Relations inverses
+  birthPlaces   Person[] @relation("BirthPlace")
+  deathPlaces   Person[] @relation("DeathPlace")
+  events        Event[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([wikidataId])
+  @@index([latitude, longitude])
+  @@index([country])
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  wikidataId    String?  @unique
+  sameAs        String[]
+  
+  // Informations
+  name          String
+  shortName     String?
+  description   String   @db.Text
+  
+  // Temporalité
+  startYear     Int?
+  endYear       Int?
+  exactDate     DateTime?
+  period        String?  // "début 12e siècle"
+  
+  // Localisation
+  placeId       String?
+  place         Place?   @relation(fields: [placeId], references: [id])
+  
+  // Participants
+  participantIds String[] // IDs de Person
+  
+  // Métadonnées
+  eventType     EventType
+  importance    Int      @default(5) // 1-10
+  imageUrl      String?
+  sourceIds     String[]
+  
+  // Chunks pour RAG
+  chunks        TextChunk[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([startYear])
+  @@index([eventType])
+  @@index([placeId])
+}
+
+model TextWork {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  wikidataId    String?  @unique
+  sameAs        String[]
+  isbn          String?
+  
+  // Informations
+  title         String
+  originalTitle String?
+  subtitle      String?
+  
+  // Auteur(s)
+  authorIds     String[] // IDs de Person
+  
+  // Langue & traduction
+  originalLanguage String?
+  translations  Json?    // { "en": "...", "fr": "..." }
+  
+  // Dates
+  composedYear  Int?
+  publishedYear Int?
+  
+  // Structure
+  sections      Json?    // Hiérarchie chapitres/versets
+  
+  // Contenu
+  fullText      String?  @db.Text
+  summary       String?  @db.Text
+  
+  // Métadonnées
+  textType      TextType
+  genre         String?
+  
+  // Références
+  sourceIds     String[]
+  imageUrl      String? // couverture
+  pdfUrl        String?
+  externalUrl   String?
+  
+  // RAG
+  chunks        TextChunk[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([wikidataId])
+  @@index([textType])
+}
+
+model Institution {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  wikidataId    String?  @unique
+  sameAs        String[]
+  
+  // Informations
+  name          String
+  shortName     String?
+  description   String?  @db.Text
+  
+  // Type
+  institutionType InstitutionType
+  
+  // Dates
+  foundedYear   Int?
+  dissolvedYear Int?
+  
+  // Localisation
+  placeId       String?
+  place         Place?   @relation(fields: [placeId], references: [id])
+  
+  // Métadonnées
+  imageUrl      String?
+  websiteUrl    String?
+  sourceIds     String[]
+  
+  // Chunks pour RAG
+  chunks        TextChunk[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([wikidataId])
+  @@index([institutionType])
+  @@index([placeId])
+}
+
+model Concept {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  wikidataId    String?  @unique
+  sameAs        String[]
+  
+  // Labels multilingues
+  labels        Json     // { "en": "Karma", "fr": "Karma", "sa": "कर्म" }
+  
+  // Définitions
+  definitions   Json     // { "en": "...", "fr": "..." }
+  
+  // Domaine
+  domains       String[] // ["religion", "philosophy"]
+  
+  // Relations sémantiques
+  broader       String[] // Concepts plus généraux
+  narrower      String[] // Concepts plus spécifiques
+  related       String[] // Concepts associés
+  
+  // Métadonnées
+  description   String?  @db.Text
+  
+  // Chunks pour RAG
+  chunks        TextChunk[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([wikidataId])
+}
+
+// ============================================
+// THÈMES - Catégories Principales
+// ============================================
+
+model Theme {
+  id            String   @id @default(cuid())
+  
+  // Identifiants
+  slug          String   @unique
+  name          String
+  icon          String
+  color         String
+  
+  // Description
+  description   String   @db.Text
+  
+  // Configuration
+  order         Int
+  status        ThemeStatus @default(PLANNED)
+  config        Json     // Features, metadata, etc.
+  
+  // Relations
+  nodes         Node[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([status])
+}
+
+// ============================================
+// NŒUDS - Entités Thématiques
+// ============================================
+
+model Node {
+  id            String   @id @default(cuid())
+  
+  // Thème
+  themeId       String
+  theme         Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  
+  // Identifiants
+  slug          String
+  name          String
+  shortName     String?
+  wikidataId    String?
+  
+  // Type (spécifique au thème)
+  nodeType      String   // "Religion", "ArtMovement", "PhilosophicalSchool", etc.
+  
+  // Temporalité
+  startYear     Int?
+  endYear       Int?
+  period        String?
+  
+  // Localisation
+  location      String?
+  placeIds      String[] // IDs de Place
+  
+  // Contenu
+  description   String   @db.Text
+  content       String?  @db.Text
+  
+  // Métadonnées visuelles
+  imageUrl      String?
+  color         String?
+  icon          String?
+  
+  // Relations hiérarchiques
+  parentId      String?
+  parent        Node?    @relation("NodeTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children      Node[]   @relation("NodeTree")
+  
+  // Relations transversales
+  influencesFrom NodeRelation[] @relation("NodeFrom")
+  influencesTo   NodeRelation[] @relation("NodeTo")
+  
+  // Liens universels (cross-thème)
+  linksFrom     UniversalLink[] @relation("LinkFrom")
+  linksTo       UniversalLink[] @relation("LinkTo")
+  
+  // Données spécifiques au thème (JSON flexible)
+  themeData     Json?    // keyFigures, keyWorks, timeline, etc.
+  
+  // Chunks pour RAG
+  chunks        TextChunk[]
+  
+  // Statistiques
+  viewCount     Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([themeId, slug])
+  @@index([themeId])
+  @@index([nodeType])
+  @@index([parentId])
+  @@index([startYear])
+  @@index([wikidataId])
+}
+
+// ============================================
+// RELATIONS ENTRE NŒUDS
+// ============================================
+
+model NodeRelation {
+  id            String   @id @default(cuid())
+  
+  // Nœuds
+  fromId        String
+  toId          String
+  from          Node     @relation("NodeFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to            Node     @relation("NodeTo", fields: [toId], references: [id], onDelete: Cascade)
+  
+  // Type de relation
+  relationType  RelationType
+  description   String?  @db.Text
+  strength      Int      @default(5) // 1-10
+  bidirectional Boolean  @default(false)
+  
+  // Temporalité
+  startYear     Int?
+  endYear       Int?
+  
+  // Source
+  sourceId      String?
+  source        Source?  @relation(fields: [sourceId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([fromId, toId, relationType])
+  @@index([fromId])
+  @@index([toId])
+  @@index([relationType])
+}
+
+// ============================================
+// LIENS UNIVERSELS (Cross-Thème)
+// ============================================
+
+model UniversalLink {
+  id            String   @id @default(cuid())
+  
+  // De n'importe quel nœud vers n'importe quel nœud
+  fromId        String
+  toId          String
+  from          Node     @relation("LinkFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to            Node     @relation("LinkTo", fields: [toId], references: [id], onDelete: Cascade)
+  
+  // Type de lien
+  linkType      LinkType
+  description   String?  @db.Text
+  weight        Int      @default(5) // Force 1-10
+  
+  // Temporalité
+  startYear     Int?
+  endYear       Int?
+  
+  // Source
+  sourceId      String?
+  source        Source?  @relation(fields: [sourceId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([fromId, toId, linkType])
+  @@index([fromId])
+  @@index([toId])
+}
+
+// ============================================
+// SOURCES & TRAÇABILITÉ
+// ============================================
+
+model Source {
+  id            String   @id @default(cuid())
+  
+  // Citation académique
+  citation      String   @db.Text
+  
+  // Métadonnées
+  title         String
+  authors       String[]
+  year          Int?
+  publisher     String?
+  
+  // Liens
+  url           String?
+  doi           String?
+  isbn          String?
+  
+  // Licence & confiance
+  license       String?
+  confidence    Int      @default(5) // 1-10
+  peerReviewed  Boolean  @default(false)
+  
+  // Type
+  sourceType    SourceType
+  
+  // Relations
+  chunks        TextChunk[]
+  nodeRelations NodeRelation[]
+  universalLinks UniversalLink[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([doi])
+  @@index([isbn])
+  @@index([sourceType])
+}
+
+// ============================================
+// RAG & SEARCH
+// ============================================
+
+model TextChunk {
+  id            String   @id @default(cuid())
+  
+  // Référence (polymorphique)
+  nodeId        String?
+  node          Node?    @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  personId      String?
+  person        Person?  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  
+  eventId       String?
+  event         Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  textWorkId    String?
+  textWork      TextWork? @relation(fields: [textWorkId], references: [id], onDelete: Cascade)
+  
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  
+  conceptId     String?
+  concept       Concept? @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  
+  // Section
+  section       String?  // "Chapitre 3", "Histoire", "Croyances"
+  
+  // Contenu
+  lang          String   @default("fr")
+  content       String   @db.Text
+  
+  // Vecteur pour RAG (pgvector)
+  // embedding     Unsupported("vector(1536)")?
+  
+  // Source
+  sourceId      String
+  source        Source   @relation(fields: [sourceId], references: [id])
+  
+  // Métadonnées
+  order         Int      @default(0)
+  wordCount     Int?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([nodeId])
+  @@index([personId])
+  @@index([eventId])
+  @@index([sourceId])
+}
+
+// ============================================
+// CHAT & CONVERSATIONS
+// ============================================
+
+model ChatSession {
+  id            String   @id @default(cuid())
+  
+  // User (optionnel)
+  userId        String?
+  
+  // Thème contexte
+  themeId       String?
+  
+  // Métadonnées
+  title         String?
+  model         String   @default("anthropic/claude-3.5-sonnet")
+  
+  // Messages
+  messages      Message[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([themeId])
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  
+  // Session
+  sessionId     String
+  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Contenu
+  role          Role
+  content       String   @db.Text
+  
+  // Contexte
+  nodeIds       String[] // IDs des nœuds mentionnés
+  citedChunkIds String[] // IDs des chunks cités
+  
+  // Métadonnées IA
+  model         String?
+  tokens        Int?
+  latencyMs     Int?
+  
+  // Feedback
+  rating        Int?     // 1-5
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum ThemeStatus {
+  ACTIVE
+  PLANNED
+  DEVELOPMENT
+  ARCHIVED
+}
+
+enum PlaceType {
+  CITY
+  REGION
+  COUNTRY
+  SACRED_SITE
+  HISTORICAL_SITE
+  NATURAL_SITE
+  BUILDING
+}
+
+enum EventType {
+  FOUNDATION
+  BATTLE
+  TREATY
+  COUNCIL
+  EXHIBITION
+  REFORM
+  CORONATION
+  SCHISM
+  DISCOVERY
+  PUBLICATION
+}
+
+enum TextType {
+  RELIGIOUS_TEXT
+  PHILOSOPHICAL_WORK
+  SCIENTIFIC_PAPER
+  LITERARY_WORK
+  LEGAL_TEXT
+  HISTORICAL_CHRONICLE
+  ARTISTIC_MANIFESTO
+}
+
+enum InstitutionType {
+  RELIGIOUS
+  ACADEMIC
+  POLITICAL
+  CULTURAL
+  ECONOMIC
+  ARTISTIC
+}
+
+enum SourceType {
+  ACADEMIC
+  ENCYCLOPEDIA
+  PRIMARY_SOURCE
+  WEB
+  BOOK
+  INTERVIEW
+  MUSEUM
+  DOCUMENTARY
+}
+
+enum RelationType {
+  DERIVES       // Dérive de
+  INFLUENCES    // Influence
+  OPPOSES       // S'oppose à
+  CONTEMPORARY  // Contemporain de
+  PRECEDES      // Précède
+  SYNTHESIZES   // Synthèse de
+  REACTS        // Réagit contre
+  COEXISTS      // Coexiste avec
+}
+
+enum LinkType {
+  DERIVES_FROM
+  INFLUENCES
+  OPPOSES
+  CONTEMPORARY_OF
+  STUDENT_OF
+  MEMBER_OF
+  LOCATED_AT
+  PARTICIPATED_IN
+  WROTE
+  COMMISSIONED
+  COMMENTED_ON
+  REFUTES
+  GENERALIZES
+  CITES
+  ALLUDES_TO
+  SHARES_MOTIF
+  USES
+  BORN_IN
+  DIED_IN
+  ACTIVE_IN
+  FOUNDED
+}
+
+enum Role {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+

@@ -1,0 +1,37 @@
+{
+  "id": "philosophy",
+  "name": "Histoire de la Philosophie",
+  "slug": "philosophy",
+  "icon": "💭",
+  "color": "#B8B0FF",
+  "description": "Découvrez les courants de pensée, philosophes et idées qui ont marqué l'histoire intellectuelle",
+  "order": 4,
+  "status": "planned",
+  "features": {
+    "graph": true,
+    "timeline": true,
+    "comparison": true,
+    "chat": true,
+    "concepts": true,
+    "arguments": true
+  },
+  "metadata": {
+    "totalNodes": 0,
+    "totalRelations": 0,
+    "startYear": -600,
+    "endYear": 2025,
+    "mainCategories": [
+      "Antiquité",
+      "Médiéval",
+      "Renaissance",
+      "Moderne",
+      "Contemporain"
+    ]
+  },
+  "aiPrompt": {
+    "system": "Tu es un philosophe expert avec une maîtrise approfondie des courants de pensée. Tu expliques les concepts philosophiques complexes de manière claire tout en préservant leur nuance et profondeur.",
+    "personality": "contemplative",
+    "expertise": ["histoire de la philosophie", "logique", "épistémologie", "éthique", "métaphysique", "écoles de pensée"]
+  }
+}
+

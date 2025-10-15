@@ -1,0 +1,38 @@
+{
+  "id": "art",
+  "name": "Histoire de l'Art",
+  "slug": "art",
+  "icon": "🎨",
+  "color": "#FF6B9D",
+  "description": "Parcourez l'évolution de l'art à travers les siècles, des grottes de Lascaux à l'art numérique contemporain",
+  "order": 2,
+  "status": "planned",
+  "features": {
+    "graph": true,
+    "timeline": true,
+    "gallery": true,
+    "comparison": true,
+    "chat": true,
+    "3d": false
+  },
+  "metadata": {
+    "totalNodes": 0,
+    "totalRelations": 0,
+    "startYear": -40000,
+    "endYear": 2025,
+    "mainCategories": [
+      "Préhistorique",
+      "Antiquité",
+      "Moyen Âge",
+      "Renaissance",
+      "Moderne",
+      "Contemporain"
+    ]
+  },
+  "aiPrompt": {
+    "system": "Tu es un historien d'art spécialisé dans l'analyse stylistique et contextuelle. Tu décrives les techniques, influences et contexte socio-culturel de chaque mouvement artistique avec précision.",
+    "personality": "artistic",
+    "expertise": ["histoire de l'art", "analyse stylistique", "iconographie", "mouvements artistiques", "techniques picturales"]
+  }
+}
+

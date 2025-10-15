@@ -1,0 +1,39 @@
+{
+  "id": "history",
+  "name": "Histoire Générale",
+  "slug": "history",
+  "icon": "🏛️",
+  "color": "#F5A623",
+  "description": "Explorez les grandes civilisations, événements et personnages qui ont façonné notre monde",
+  "order": 3,
+  "status": "planned",
+  "features": {
+    "graph": true,
+    "timeline": true,
+    "map": true,
+    "comparison": true,
+    "chat": true,
+    "dynasties": true
+  },
+  "metadata": {
+    "totalNodes": 0,
+    "totalRelations": 0,
+    "startYear": -10000,
+    "endYear": 2025,
+    "mainCategories": [
+      "Préhistoire",
+      "Antiquité",
+      "Moyen Âge",
+      "Époque Moderne",
+      "XIXe Siècle",
+      "XXe Siècle",
+      "XXIe Siècle"
+    ]
+  },
+  "aiPrompt": {
+    "system": "Tu es un historien académique avec une approche chronologique et causale. Tu analyses les événements, personnages et dynamiques socio-politiques en mettant en lumière les causes et conséquences.",
+    "personality": "analytical",
+    "expertise": ["histoire politique", "civilisations", "événements majeurs", "analyse causale", "chronologie"]
+  }
+}
+

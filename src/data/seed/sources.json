@@ -1,0 +1,52 @@
+[
+  {
+    "id": "source-1",
+    "title": "Encyclopedia Britannica - Religion",
+    "type": "ENCYCLOPEDIA",
+    "url": "https://www.britannica.com/topic/religion",
+    "authors": ["Encyclopedia Britannica Editors"],
+    "publisher": "Britannica",
+    "reliability": 9,
+    "peerReviewed": false,
+    "license": "Commercial"
+  },
+  {
+    "id": "source-2",
+    "title": "World Religions Database",
+    "type": "ACADEMIC",
+    "url": "https://worldreligiondatabase.org/",
+    "authors": ["Todd M. Johnson", "Gina A. Zurlo"],
+    "reliability": 8,
+    "peerReviewed": true
+  },
+  {
+    "id": "source-3",
+    "title": "Oxford Handbook of the Sociology of Religion",
+    "type": "BOOK",
+    "authors": ["Peter B. Clarke"],
+    "publisher": "Oxford University Press",
+    "publishedYear": 2009,
+    "reliability": 9,
+    "peerReviewed": true
+  },
+  {
+    "id": "source-4",
+    "title": "Stanford Encyclopedia of Philosophy - Religion",
+    "type": "ENCYCLOPEDIA",
+    "url": "https://plato.stanford.edu/",
+    "authors": ["Stanford University"],
+    "reliability": 9,
+    "peerReviewed": true
+  },
+  {
+    "id": "source-5",
+    "title": "The Cambridge Companion to Religious Studies",
+    "type": "BOOK",
+    "authors": ["Robert A. Orsi"],
+    "publisher": "Cambridge University Press",
+    "publishedYear": 2012,
+    "reliability": 9,
+    "peerReviewed": true
+  }
+]
+

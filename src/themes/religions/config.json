@@ -1,0 +1,37 @@
+{
+  "id": "religions",
+  "name": "Religions & Spiritualités",
+  "slug": "religions",
+  "icon": "🕉️",
+  "color": "#4A90E2",
+  "description": "Explorez l'histoire des religions du monde, leurs influences mutuelles et leurs traditions spirituelles",
+  "order": 1,
+  "status": "active",
+  "features": {
+    "graph": true,
+    "timeline": true,
+    "map": true,
+    "comparison": true,
+    "chat": true
+  },
+  "metadata": {
+    "totalNodes": 20,
+    "totalRelations": 17,
+    "startYear": -3000,
+    "endYear": 2025,
+    "mainCategories": [
+      "Abrahamique",
+      "Dharmic",
+      "Taoic",
+      "Indigène",
+      "Ancien",
+      "Moderne"
+    ]
+  },
+  "aiPrompt": {
+    "system": "Tu es un expert en histoire des religions et théologie comparée. Tu analyses de manière objective et respectueuse toutes les traditions spirituelles, en citant systématiquement tes sources.",
+    "personality": "scholarly",
+    "expertise": ["histoire religieuse", "théologie comparée", "anthropologie religieuse", "textes sacrés"]
+  }
+}
+

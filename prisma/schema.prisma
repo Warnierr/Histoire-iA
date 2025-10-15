@@ -1,0 +1,380 @@
+// Schéma Prisma pour Religious Map
+// Support: PostgreSQL 16+ avec extension pgvector
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ============================================
+// MODÈLE PRINCIPAL - RELIGION
+// ============================================
+
+model Religion {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  slug          String   @unique
+  shortName     String?
+  autonym       String?  // Nom dans la langue d'origine
+  
+  // Temporalité
+  foundedYear   Int?     // Année (négatif pour avant JC)
+  foundedYearEnd Int?    // Pour périodes
+  foundedCentury String?
+  
+  // Géographie
+  foundedPlace  String?
+  foundedPlaceId String?
+  place         Place?   @relation(fields: [foundedPlaceId], references: [id])
+  
+  // Démographie
+  followers     BigInt?
+  followersYear Int?     // Année de l'estimation
+  
+  // Classification
+  category      Category
+  family        String?  // abrahamique, dharmique, etc.
+  status        Status   @default(ACTIVE)
+  
+  // Métadonnées
+  iconUrl       String?
+  color         String   // Pour visualisation
+  wikidataId    String?  @unique
+  
+  // Relations hiérarchiques
+  parentId      String?
+  parent        Religion?  @relation("ReligionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  branches      Religion[] @relation("ReligionTree")
+  
+  // Relations d'influence
+  influencesFrom Influence[] @relation("InfluencedBy")
+  influencesTo   Influence[] @relation("Influences")
+  
+  // Contenu (chunks pour RAG)
+  chunks        TextChunk[]
+  
+  // Événements
+  events        Event[]
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([category])
+  @@index([family])
+  @@index([parentId])
+  @@index([wikidataId])
+  @@index([slug])
+}
+
+// ============================================
+// CHUNKS DE TEXTE (pour RAG)
+// ============================================
+
+model TextChunk {
+  id            String   @id @default(cuid())
+  religionId    String
+  religion      Religion @relation(fields: [religionId], references: [id], onDelete: Cascade)
+  
+  // Contenu
+  content       String   @db.Text
+  section       Section  // Type de contenu
+  language      String   @default("fr")
+  
+  // Métadonnées
+  order         Int      // Ordre dans la section
+  wordCount     Int
+  
+  // Source
+  sourceId      String
+  source        Source   @relation(fields: [sourceId], references: [id])
+  
+  // Vector embedding (pour pgvector)
+  // embedding     Unsupported("vector(1536)")? // Dimension OpenAI ada-002
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([religionId, section])
+  @@index([sourceId])
+}
+
+enum Section {
+  OVERVIEW       // Vue d'ensemble
+  HISTORY        // Histoire
+  BELIEFS        // Croyances
+  PRACTICES      // Pratiques
+  TEXTS          // Textes sacrés
+  FIGURES        // Figures importantes
+  BRANCHES       // Branches/courants
+  GEOGRAPHY      // Répartition géographique
+  DEMOGRAPHY     // Démographie
+  CULTURE        // Aspects culturels
+  CONTEMPORARY   // Enjeux contemporains
+}
+
+// ============================================
+// SOURCES & TRAÇABILITÉ
+// ============================================
+
+model Source {
+  id            String   @id @default(cuid())
+  
+  // Identification
+  title         String
+  type          SourceType
+  url           String?
+  isbn          String?
+  doi           String?
+  
+  // Auteurs
+  authors       String[] // Array de noms
+  publisher     String?
+  publishedYear Int?
+  
+  // Qualité
+  reliability   Int      @default(5) // 1-10
+  peerReviewed  Boolean  @default(false)
+  license       String?
+  
+  // Relations
+  chunks        TextChunk[]
+  influences    Influence[]
+  events        Event[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([type])
+  @@index([reliability])
+}
+
+enum SourceType {
+  ACADEMIC       // Article académique
+  BOOK           // Livre
+  ENCYCLOPEDIA   // Encyclopédie
+  WEBSITE        // Site web
+  INTERVIEW      // Interview
+  PRIMARY        // Source primaire (texte sacré)
+  MUSEUM         // Musée/institution
+  DOCUMENTARY    // Documentaire
+}
+
+// ============================================
+// INFLUENCES & RELATIONS
+// ============================================
+
+model Influence {
+  id            String   @id @default(cuid())
+  
+  // Relations
+  fromId        String
+  toId          String
+  from          Religion @relation("InfluencedBy", fields: [fromId], references: [id], onDelete: Cascade)
+  to            Religion @relation("Influences", fields: [toId], references: [id], onDelete: Cascade)
+  
+  // Type & force
+  type          InfluenceType
+  strength      Int      @default(5) // 1-10
+  bidirectional Boolean  @default(false)
+  
+  // Temporalité
+  periodStart   Int?     // Année début
+  periodEnd     Int?     // Année fin
+  
+  // Description
+  description   String?  @db.Text
+  
+  // Source
+  sourceId      String?
+  source        Source?  @relation(fields: [sourceId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([fromId, toId])
+  @@index([type])
+  @@index([strength])
+}
+
+enum InfluenceType {
+  DERIVATION     // Religion dérivée
+  INSPIRATION    // Influence philosophique
+  SYNCRETISME    // Mélange traditions
+  OPPOSITION     // Réaction contre
+  REFORM         // Réforme interne
+  COEXISTENCE    // Coexistence pacifique
+  CONFLICT       // Conflit historique
+  ABSORPTION     // Absorption d'éléments
+}
+
+// ============================================
+// ÉVÉNEMENTS HISTORIQUES
+// ============================================
+
+model Event {
+  id            String   @id @default(cuid())
+  
+  // Identification
+  title         String
+  description   String   @db.Text
+  
+  // Temporalité
+  year          Int?
+  yearEnd       Int?     // Pour événements sur période
+  century       String?
+  
+  // Localisation
+  placeId       String?
+  place         Place?   @relation(fields: [placeId], references: [id])
+  
+  // Relations
+  religionId    String
+  religion      Religion @relation(fields: [religionId], references: [id], onDelete: Cascade)
+  
+  // Type
+  type          EventType
+  importance    Int      @default(5) // 1-10
+  
+  // Source
+  sourceId      String?
+  source        Source?  @relation(fields: [sourceId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([religionId])
+  @@index([year])
+  @@index([type])
+}
+
+enum EventType {
+  FOUNDATION     // Fondation
+  REFORM         // Réforme
+  SCHISM         // Schisme
+  COUNCIL        // Concile
+  PERSECUTION    // Persécution
+  EXPANSION      // Expansion
+  DECLINE        // Déclin
+  REVIVAL        // Renouveau
+  MILESTONE      // Événement majeur
+}
+
+// ============================================
+// LIEUX
+// ============================================
+
+model Place {
+  id            String   @id @default(cuid())
+  
+  // Identification
+  name          String
+  localName     String?  // Nom local
+  wikidataId    String?  @unique
+  
+  // Géographie
+  latitude      Float?
+  longitude     Float?
+  country       String?
+  region        String?
+  
+  // GeoJSON pour frontières
+  geojson       Json?
+  
+  // Relations
+  religions     Religion[]
+  events        Event[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([country])
+  @@index([wikidataId])
+}
+
+// ============================================
+// CHAT & CONVERSATIONS
+// ============================================
+
+model ChatSession {
+  id            String   @id @default(cuid())
+  
+  // User (optionnel, pour auth future)
+  userId        String?
+  
+  // Métadonnées
+  title         String?  // Généré automatiquement
+  model         String   @default("anthropic/claude-3.5-sonnet")
+  
+  // Relations
+  messages      Message[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  
+  // Session
+  sessionId     String
+  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Contenu
+  role          Role
+  content       String   @db.Text
+  
+  // Contexte
+  religionIds   String[] // IDs des religions mentionnées
+  citedChunkIds String[] // IDs des chunks cités
+  
+  // Métadonnées IA
+  model         String?
+  tokens        Int?
+  latencyMs     Int?
+  
+  // Feedback (optionnel)
+  rating        Int?     // 1-5
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+enum Role {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// ============================================
+// ENUMS GÉNÉRAUX
+// ============================================
+
+enum Category {
+  ABRAHAMIQUE
+  DHARMIC
+  TAOIC
+  INDIGENE
+  MODERNE
+  ANCIEN
+  PHILOSOPHIQUE
+  SYNCHRETIQUE
+}
+
+enum Status {
+  ACTIVE         // Religion active
+  HISTORICAL     // Religion historique (peu/pas de pratiquants)
+  EXTINCT        // Religion éteinte
+  RECONSTRUCTED  // Religion reconstruite
+}
+
