@@ -1,7 +1,6 @@
 'use client';
 
 import { ThemeSelector } from '@/components/themes/theme-selector';
-import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 // VERSION 0.2.0 - Plateforme Multi-Thématique
 // Interface d'accueil avec sélection des thèmes
@@ -16,9 +15,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Theme Toggle */}
-      <ThemeToggle />
-      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background decoration */}
