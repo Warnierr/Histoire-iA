@@ -1,3 +1,5 @@
+'use client';
+
 import { ThemeSelector } from '@/components/themes/theme-selector';
 
 // VERSION 0.2.0 - Plateforme Multi-Thématique
