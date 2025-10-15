@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 
 interface Theme {
   id: string;
@@ -131,47 +132,80 @@ export function ThemeSelector() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {themes.map((theme) => (
-          <Card 
-            key={theme.id}
-            className="p-6 hover:shadow-lg transition-shadow cursor-pointer group relative overflow-hidden"
-            style={{
-              borderLeft: `4px solid ${theme.color}`
-            }}
-          >
-            <div className="absolute top-0 right-0 opacity-10 text-8xl group-hover:opacity-20 transition-opacity">
-              {theme.icon}
-            </div>
-            
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-3">
-                <div className="text-4xl">{theme.icon}</div>
-                <Badge 
-                  variant={theme.status === 'active' ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
-                  {theme.status === 'active' ? '✓ Actif' : '🔜 Bientôt'}
-                </Badge>
-              </div>
-
-              <h3 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors">
-                {theme.name}
-              </h3>
-              
-              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                {theme.description}
-              </p>
-
-              {theme.status === 'active' ? (
-                <div className="flex items-center text-sm text-purple-600 font-medium">
-                  Explorer maintenant →
+          theme.status === 'active' ? (
+            <Link key={theme.id} href={`/explore/${theme.slug}`} className="block focus:outline-none">
+              <Card 
+                className="p-6 hover:shadow-lg transition-shadow cursor-pointer group relative overflow-hidden"
+                style={{
+                  borderLeft: `4px solid ${theme.color}`
+                }}
+              >
+                <div className="absolute top-0 right-0 opacity-10 text-8xl group-hover:opacity-20 transition-opacity">
+                  {theme.icon}
                 </div>
-              ) : (
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="text-4xl">{theme.icon}</div>
+                    <Badge 
+                      variant="default"
+                      className="text-xs"
+                    >
+                      ✓ Actif
+                    </Badge>
+                  </div>
+
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors">
+                    {theme.name}
+                  </h3>
+                  
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                    {theme.description}
+                  </p>
+
+                  <div className="flex items-center text-sm text-purple-600 font-medium">
+                    Explorer maintenant →
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ) : (
+            <Card 
+              key={theme.id}
+              className="p-6 hover:shadow-lg transition-shadow group relative overflow-hidden"
+              style={{
+                borderLeft: `4px solid ${theme.color}`
+              }}
+            >
+              <div className="absolute top-0 right-0 opacity-10 text-8xl group-hover:opacity-20 transition-opacity">
+                {theme.icon}
+              </div>
+              
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-4xl">{theme.icon}</div>
+                  <Badge 
+                    variant="secondary"
+                    className="text-xs"
+                  >
+                    🔜 Bientôt
+                  </Badge>
+                </div>
+
+                <h3 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors">
+                  {theme.name}
+                </h3>
+                
+                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                  {theme.description}
+                </p>
+
                 <div className="flex items-center text-sm text-slate-400">
                   En développement...
                 </div>
-              )}
-            </div>
-          </Card>
+              </div>
+            </Card>
+          )
         ))}
       </div>
 
