@@ -77,6 +77,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
     if (!ctx) return;
 
     let animationId: number;
+    let currentRotation = { ...rotation };
 
     const resizeCanvas = () => {
       const container = canvas.parentElement;
@@ -128,7 +129,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
       for (let lat = -80; lat <= 80; lat += 20) {
         ctx.beginPath();
         for (let lon = -180; lon <= 180; lon += 5) {
-          const point = project3D(lat, lon, radius, centerX, centerY, rotation);
+          const point = project3D(lat, lon, radius, centerX, centerY, currentRotation);
           if (point.visible) {
             if (lon === -180) {
               ctx.moveTo(point.x, point.y);
@@ -144,7 +145,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
       for (let lon = -180; lon <= 180; lon += 30) {
         ctx.beginPath();
         for (let lat = -90; lat <= 90; lat += 5) {
-          const point = project3D(lat, lon, radius, centerX, centerY, rotation);
+          const point = project3D(lat, lon, radius, centerX, centerY, currentRotation);
           if (point.visible) {
             if (lat === -90) {
               ctx.moveTo(point.x, point.y);
@@ -160,7 +161,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
       const sortedPoints = geoPoints
         .map(gp => ({
           ...gp,
-          projected: project3D(gp.lat, gp.lon, radius, centerX, centerY, rotation),
+          projected: project3D(gp.lat, gp.lon, radius, centerX, centerY, currentRotation),
         }))
         .filter(gp => gp.projected.visible)
         .sort((a, b) => a.projected.z - b.projected.z);
@@ -206,7 +207,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
           radius,
           centerX,
           centerY,
-          rotation
+          currentRotation
         );
 
         if (projected.visible) {
@@ -246,11 +247,14 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
 
     const animate = () => {
       if (autoRotate && !isDragging) {
-        setRotation(r => ({ ...r, y: (r.y + 0.3) % 360 }));
+        currentRotation = { ...currentRotation, y: (currentRotation.y + 0.3) % 360 };
       }
       drawGlobe();
       animationId = requestAnimationFrame(animate);
     };
+
+    // Sync currentRotation avec rotation state au démarrage et lors des changements manuels
+    currentRotation = { ...rotation };
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -259,8 +263,10 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationId);
+      // Sync final rotation state
+      setRotation(currentRotation);
     };
-  }, [geoPoints, rotation, zoom, isDragging, autoRotate, hoveredPoint]);
+  }, [geoPoints, zoom, isDragging, autoRotate, hoveredPoint]);
 
   // 3D projection helper
   const project3D = (
