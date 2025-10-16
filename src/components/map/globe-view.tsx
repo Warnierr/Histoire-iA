@@ -22,7 +22,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false); // Immobile par défaut
   const [hoveredPoint, setHoveredPoint] = useState<GeoPoint | null>(null);
 
   // Coordonnées approximatives des régions d'origine
@@ -157,6 +157,9 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
         ctx.stroke();
       }
 
+      // Dessiner les continents (contours simplifiés)
+      drawContinents(ctx, radius, centerX, centerY, currentRotation);
+
       // Religion points
       const sortedPoints = geoPoints
         .map(gp => ({
@@ -247,10 +250,59 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
 
     const animate = () => {
       if (autoRotate && !isDragging) {
-        currentRotation = { ...currentRotation, y: (currentRotation.y + 0.3) % 360 };
+        currentRotation = { ...currentRotation, y: (currentRotation.y + 0.2) % 360 }; // Réduit de 0.3 à 0.2
       }
       drawGlobe();
       animationId = requestAnimationFrame(animate);
+    };
+
+    // Fonction pour dessiner les continents (contours simplifiés)
+    const drawContinents = (
+      ctx: CanvasRenderingContext2D,
+      radius: number,
+      centerX: number,
+      centerY: number,
+      rotation: { x: number; y: number }
+    ) => {
+      // Données simplifiées des continents (points clés lat/lon)
+      const continents = [
+        // Afrique
+        { name: 'Africa', points: [[37, -6], [35, 30], [10, 45], [-35, 50], [-35, 15], [10, -15], [37, -6]] },
+        // Europe
+        { name: 'Europe', points: [[71, 25], [71, 50], [36, 40], [36, -10], [60, -10], [71, 25]] },
+        // Asie
+        { name: 'Asia', points: [[80, 60], [70, 180], [10, 140], [0, 100], [10, 70], [35, 50], [60, 60], [80, 60]] },
+        // Amérique du Nord
+        { name: 'North America', points: [[72, -170], [72, -50], [25, -80], [10, -110], [30, -170], [72, -170]] },
+        // Amérique du Sud
+        { name: 'South America', points: [[10, -80], [10, -35], [-55, -70], [-55, -80], [10, -80]] },
+        // Australie
+        { name: 'Australia', points: [[-10, 113], [-10, 154], [-44, 147], [-39, 115], [-10, 113]] },
+      ];
+
+      ctx.strokeStyle = '#475569'; // Couleur visible pour les continents
+      ctx.lineWidth = 2;
+
+      continents.forEach(continent => {
+        ctx.beginPath();
+        let firstPoint = true;
+
+        for (let i = 0; i < continent.points.length; i++) {
+          const [lat, lon] = continent.points[i];
+          const point = project3D(lat, lon, radius, centerX, centerY, rotation);
+
+          if (point.visible) {
+            if (firstPoint) {
+              ctx.moveTo(point.x, point.y);
+              firstPoint = false;
+            } else {
+              ctx.lineTo(point.x, point.y);
+            }
+          }
+        }
+
+        ctx.stroke();
+      });
     };
 
     // Sync currentRotation avec rotation state au démarrage et lors des changements manuels
@@ -406,7 +458,7 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 z-10">
         <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20 text-white text-xs">
-          🖱️ Glisser pour faire pivoter • 🔍 Survoler pour infos
+          🖱️ Glisser pour faire pivoter • 🔍 Survoler pour infos • 🌍 Toggle pour rotation auto
         </div>
       </div>
     </div>
