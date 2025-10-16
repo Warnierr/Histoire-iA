@@ -315,8 +315,6 @@ export function GlobeView({ religions, onReligionClick }: GlobeViewProps) {
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationId);
-      // Sync final rotation state
-      setRotation(currentRotation);
     };
   }, [geoPoints, zoom, isDragging, autoRotate, hoveredPoint]);
 
