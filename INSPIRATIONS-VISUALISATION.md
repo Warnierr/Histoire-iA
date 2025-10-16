@@ -574,3 +574,4 @@ Pour **Histoire iA - Religions**, je recommande :
 
 **Veux-tu que je commence par implémenter les "Quick Wins" pour améliorer la vue actuelle ?** 🚀
 
+
